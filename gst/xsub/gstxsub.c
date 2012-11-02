@@ -146,11 +146,7 @@ gst_xsub_base_init (gpointer gclass)
 static void
 gst_xsub_class_init (GstXSubClass * klass)
 {
-  GObjectClass *gobject_class;
-  GstElementClass *gstelement_class;
-
-  gobject_class = (GObjectClass *) klass;
-  gstelement_class = (GstElementClass *) klass;
+  GObjectClass *gobject_class = (GObjectClass *) klass;
 
   gobject_class->set_property = gst_xsub_set_property;
   gobject_class->get_property = gst_xsub_get_property;
