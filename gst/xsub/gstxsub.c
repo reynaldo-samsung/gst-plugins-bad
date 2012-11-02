@@ -263,9 +263,7 @@ gst_xsub_frame_chain (GstPad * pad, GstBuffer * buf)
 {
   GstXSub *filter;
   GstXSubData *spu;
-  guint8 *pict_data;
-  guint8 *spu_data;
-
+  GstMapInfo pict_map, spu_map;
   int i;
 
   filter = GST_XSUB (GST_OBJECT_PARENT (pad));
@@ -297,10 +295,19 @@ gst_xsub_frame_chain (GstPad * pad, GstBuffer * buf)
   }
 
   if (spu) {
-    buf = gst_buffer_make_writable (buf);
-    pict_data = GST_BUFFER_DATA (buf);
     GST_DEBUG_OBJECT (pad, "Have SPU data for this frame");
-    spu_data = GST_BUFFER_DATA (spu->buf);
+    buf = gst_buffer_make_writable (buf);
+    if (!gst_buffer_map (buf, &pict_map, GST_MAP_WRITE)) {
+      GST_ERROR_OBJECT (pad, "Map failed on picture buffer");
+      goto CLEANUP_AND_PUSH;
+    }
+
+    if (!gst_buffer_map (spu->buf, &spu_map, GST_MAP_READ)) {
+      GST_ERROR_OBJECT (pad, "Map failed on spu buffer");
+      goto CLEANUP_AND_PUSH;
+    }
+
+    GST_DEBUG_OBJECT (pad, "pict/spu map succeed");
 
     /* Overwrite coords if off bounds */
 
@@ -318,28 +325,34 @@ gst_xsub_frame_chain (GstPad * pad, GstBuffer * buf)
       spu->coords[3] = spu->height - 1;
     }
 
+    /* FIXME: This should use the new overlay API */
     if (filter->show_bg)
       /* blit with background in */
       for (i = 0; i < spu->height; i++)
-        memcpy (pict_data + (i * filter->width + spu->coords[0]) * XSUB_RGB_BPP,
-            spu_data + i * spu->width * XSUB_RGB_BPP,
+        memcpy (pict_map.data + (i * filter->width +
+                spu->coords[0]) * XSUB_RGB_BPP,
+            spu_map.data + i * spu->width * XSUB_RGB_BPP,
             spu->width * XSUB_RGB_BPP);
     else
       /* blit without background */
       for (i = 0; i < spu->height; i++) {
         xsub_wipe_background (spu->bgless_row,
-            spu_data + i * spu->width * XSUB_RGB_BPP,
-            pict_data + (i * filter->width + spu->coords[0]) * XSUB_RGB_BPP,
+            spu_map.data + i * spu->width * XSUB_RGB_BPP,
+            pict_map.data + (i * filter->width + spu->coords[0]) * XSUB_RGB_BPP,
             spu->bg_color, spu->width * XSUB_RGB_BPP);
 
-        memcpy (pict_data + (i * filter->width + spu->coords[0]) * XSUB_RGB_BPP,
-            spu->bgless_row, spu->width * XSUB_RGB_BPP);
+        memcpy (pict_map.data + (i * filter->width +
+                spu->coords[0]) * XSUB_RGB_BPP, spu->bgless_row,
+            spu->width * XSUB_RGB_BPP);
       }
 
     GST_DEBUG_OBJECT (pad, "Blitted a spu!");
 
   }
 
+CLEANUP_AND_PUSH:
+  gst_buffer_unmap (buf, &pict_map);
+  gst_buffer_unmap (spu->buf, &spu_map);
   g_static_mutex_unlock (&filter->lock);
   return gst_pad_push (filter->src, buf);
 }
