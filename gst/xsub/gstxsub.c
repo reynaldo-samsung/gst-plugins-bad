@@ -109,7 +109,7 @@ static GstStaticPadTemplate src_factory_mixed = GST_STATIC_PAD_TEMPLATE ("src",
     GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("RGB"))
     );
 
-GST_BOILERPLATE (GstXSub, gst_xsub, GstElement, GST_TYPE_ELEMENT);
+G_DEFINE_TYPE (GstXSub, gst_xsub, GST_TYPE_ELEMENT);
 
 static void gst_xsub_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec);
@@ -166,7 +166,7 @@ gst_xsub_class_init (GstXSubClass * klass)
  * initialize instance structure
  */
 static void
-gst_xsub_init (GstXSub * filter, GstXSubClass * gclass)
+gst_xsub_init (GstXSub * filter)
 {
   g_static_mutex_init (&filter->lock);
   filter->spu_queue = g_queue_new ();
