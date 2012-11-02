@@ -100,13 +100,13 @@ static GstStaticPadTemplate sink_factory_pict =
 GST_STATIC_PAD_TEMPLATE ("video_sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS (GST_VIDEO_CAPS_RGB)
+    GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("RGB"))
     );
 
 static GstStaticPadTemplate src_factory_mixed = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS (GST_VIDEO_CAPS_RGB)
+    GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("RGB"))
     );
 
 GST_BOILERPLATE (GstXSub, gst_xsub, GstElement, GST_TYPE_ELEMENT);
