@@ -17,10 +17,13 @@ plugin_LTLIBRARIES = libgstxsub.la
 libgstxsub_la_SOURCES = gstxsub.c gstxsub.h xsub.c xsub.h
 
 # compiler and linker flags used to compile this plugin, set in configure.ac
-libgstxsub_la_CFLAGS = $(GST_CFLAGS)
+libgstxsub_la_CFLAGS = \
+    $(GST_PLUGINS_BASE_CFLAGS) \
+    $(GST_BASE_CFLAGS) $(GST_CFLAGS)
 libgstxsub_la_LIBADD = \
-    $(GST_PLUGINS_BASE_LIBS) -lgsttag-$(GST_MAJORMINOR) \
-    $(GST_BASE_LIBS) $(GST_LIBS)
+    $(GST_LIBS) \
+    $(GST_BASE_LIBS) -lgsttag-$(GST_API_VERSION) \
+    $(GST_PLUGINS_BASE_LIBS) -lgstvideo-$(GST_API_VERSION)
 libgstxsub_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
 libgstxsub_la_LIBTOOLFLAGS = --tag=disable-static
 
