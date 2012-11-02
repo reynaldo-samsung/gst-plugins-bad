@@ -382,7 +382,7 @@ gst_xsub_spu_chain (GstPad * pad, GstBuffer * buf)
     GST_DEBUG_OBJECT (pad, "Parsed #%d: [(%hu,%hu)-(%hu,%hu)] Size: %d",
         g_queue_get_length (filter->spu_queue),
         parsed->coords[0], parsed->coords[1], parsed->coords[2],
-        parsed->coords[3], parsed->buf->size);
+        parsed->coords[3], gst_buffer_get_size (parsed->buf));
     g_static_mutex_unlock (&filter->lock);
   }
 
