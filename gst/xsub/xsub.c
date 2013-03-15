@@ -112,8 +112,8 @@ xsub_parse_header (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
   const guint8 *t_frac;
 
   /* Quick sanity check */
-  if (src->size < XSUB_RLE_IMG_START) {
-    GST_ERROR_OBJECT (pad, "src->size < XSUB_RLE_IMG_START");
+  if (gst_buffer_get_size (src) < XSUB_RLE_IMG_START) {
+    GST_ERROR_OBJECT (pad, "src buffer size < XSUB_RLE_IMG_START");
     return FALSE;
   }
 
@@ -198,7 +198,7 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
    * build this image so its format preserves that depth
    */
   spu_size = dest->width * dest->height * XSUB_RGB_BPP;
-  GST_BUFFER_SIZE (dest->buf) = spu_size;
+  gst_buffer_set_size (dest->buf, spu_size);
   GST_BUFFER_MALLOCDATA (dest->buf) = g_malloc (spu_size);
   dest_data = GST_BUFFER_DATA (dest->buf) = GST_BUFFER_MALLOCDATA (dest->buf);
 
@@ -207,7 +207,8 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
   /* By the time we get here we know buffer has at least header_size bytes */
   haystack = gst_bit_reader_new (src_data + dest->header_size,
       dest->rle_length);
-  spu_frame = gst_byte_writer_new_with_data (dest_data, dest->buf->size, TRUE);
+  spu_frame = gst_byte_writer_new_with_data (dest_data,
+      gst_buffer_get_size (dest->buf), TRUE);
 
   needle = 0;
   for (row = 0; row < dest->height; row++) {
