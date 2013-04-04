@@ -75,10 +75,8 @@ struct GstXSubData
 gboolean
 xsub_wipe_background (guint8 * dest, const guint8 * spu, const guint8 * src,
     const guint32 * bg_color, guint16 stride);
-gboolean xsub_parse_header (GstPad * pad, GstXSubData * dest,
-    const GstBuffer * src);
-gboolean xsub_parse_spu (GstPad * pad, GstXSubData * dest,
-    const GstBuffer * src);
+gboolean xsub_parse_header (GstPad * pad, GstXSubData * dest, GstBuffer * src);
+gboolean xsub_parse_spu (GstPad * pad, GstXSubData * dest, GstBuffer * src);
 
 G_END_DECLS
 #endif /* __XSUB_H__ */

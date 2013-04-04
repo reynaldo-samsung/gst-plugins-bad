@@ -103,21 +103,24 @@ xsub_parse_timing_string (GstBuffer * dest, const guint8 * t_frac)
 
 /* Parses the XSUB header from a XSUB packet */
 gboolean
-xsub_parse_header (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
+xsub_parse_header (GstPad * pad, GstXSubData * dest, GstBuffer * src)
 {
   GstByteReader *header;
+  GstMapInfo map_info = GST_MAP_INFO_INIT;
   gboolean ret = TRUE;
   gboolean has_time = FALSE;
-  guint8 *src_data;
   const guint8 *t_frac;
 
-  /* Quick sanity check */
-  if (gst_buffer_get_size (src) < XSUB_RLE_IMG_START) {
-    GST_ERROR_OBJECT (pad, "src buffer size < XSUB_RLE_IMG_START");
+  if (!gst_buffer_map (src, &map_info, GST_MAP_READ)) {
+    GST_ERROR_OBJECT (pad, "Error mapping src buffer");
     return FALSE;
   }
 
-  src_data = GST_BUFFER_DATA (src);
+  /* Quick sanity check */
+  if (map_info.size < XSUB_RLE_IMG_START) {
+    GST_ERROR_OBJECT (pad, "src buffer size < XSUB_RLE_IMG_START");
+    goto bail_mapped;
+  }
 
   /* FIXME: fix demuxer to correctly parse xsub timing data and do:
    * dest->buf->timestamp = src->timestamp;
@@ -125,16 +128,16 @@ xsub_parse_header (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
    * instead of all this time-parsing mambojambo
    */
 
-  header = gst_byte_reader_new (src_data, XSUB_RLE_IMG_START);
+  header = gst_byte_reader_new (map_info.data, XSUB_RLE_IMG_START);
 
   /* Parse timing data if present */
-  if (src_data[0] == '[' && src_data[26] == ']') {
+  if (map_info.data[0] == '[' && map_info.data[26] == ']') {
 
     has_time = TRUE;
 
     if (!gst_byte_reader_get_data (header, XSUB_SIZE_DATA_START, &t_frac)) {
       GST_DEBUG_OBJECT (pad, "Error geting timing data");
-      ret = FALSE;
+      goto bail_mapped;
     } else {
       xsub_parse_timing_string (dest->buf, t_frac);
       GST_DEBUG_OBJECT (pad, "SPU TIMING: ts:%" GST_TIME_FORMAT " duration:%"
@@ -165,32 +168,42 @@ xsub_parse_header (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
 
   gst_byte_reader_free (header);
 
+  gst_buffer_unmap (src, &map_info);
   return ret;
+
+bail_mapped:
+  gst_buffer_unmap (src, &map_info);
+  return FALSE;
 }
 
 /* Decodes RLE'd SPU data from a XSUB SPU frame whos header has
  * already been parsed and puts RGB24 data for it in dest->buf
  */
 gboolean
-xsub_parse_spu (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
+xsub_parse_spu (GstPad * pad, GstXSubData * dest, GstBuffer * src)
 {
   gint16 row, col;
   guint16 needle;
   guint16 run_length;
   gint32 spu_size;
-  guint8 *src_data, *dest_data;
   GstBitReader *haystack;
   GstByteWriter *spu_frame;
+  GstMemory *spu_mem;
+  GstMapInfo src_map_info = GST_MAP_INFO_INIT;
+  GstMapInfo spu_map_info = GST_MAP_INFO_INIT;
 
   int color_index, i, j;
 
-  src_data = GST_BUFFER_DATA (src);
+  if (!gst_buffer_map (src, &src_map_info, GST_MAP_READ)) {
+    GST_ERROR_OBJECT (pad, "Error mapping src buffer");
+    return FALSE;
+  }
 
   /* Note that a full RLEd row of 1 color takes a ~byte */
   if (!dest->width || !dest->height || dest->rle_length < dest->height) {
     GST_ERROR_OBJECT (pad, "Wrong size or rle_length missmatch rle_length:%d",
         dest->rle_length);
-    return FALSE;
+    goto bail_src_mapped;
   }
 
   /* FIXME, this is drafted over RGB 24bpp output
@@ -199,15 +212,22 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
    */
   spu_size = dest->width * dest->height * XSUB_RGB_BPP;
   gst_buffer_set_size (dest->buf, spu_size);
-  GST_BUFFER_MALLOCDATA (dest->buf) = g_malloc (spu_size);
-  dest_data = GST_BUFFER_DATA (dest->buf) = GST_BUFFER_MALLOCDATA (dest->buf);
+  spu_mem = gst_allocator_alloc (NULL, spu_size, NULL);
+  gst_buffer_insert_memory (dest->buf, -1, spu_mem);
+
+  if (!gst_buffer_map (dest->buf, &spu_map_info, GST_MAP_WRITE)) {
+    GST_ERROR_OBJECT (pad, "Error mapping spu buffer");
+    gst_allocator_free (NULL, spu_mem);
+    gst_buffer_remove_all_memory (dest->buf);
+    goto bail_src_mapped;
+  }
 
   /* SPU decoding */
 
   /* By the time we get here we know buffer has at least header_size bytes */
-  haystack = gst_bit_reader_new (src_data + dest->header_size,
+  haystack = gst_bit_reader_new (src_map_info.data + dest->header_size,
       dest->rle_length);
-  spu_frame = gst_byte_writer_new_with_data (dest_data,
+  spu_frame = gst_byte_writer_new_with_data (spu_map_info.data,
       gst_buffer_get_size (dest->buf), TRUE);
 
   needle = 0;
@@ -250,8 +270,14 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, const GstBuffer * src)
 
   gst_bit_reader_free (haystack);
   gst_byte_writer_free (spu_frame);
+  gst_buffer_unmap (src, &src_map_info);
+  gst_buffer_unmap (src, &spu_map_info);
 
   return TRUE;
+
+bail_src_mapped:
+  gst_buffer_unmap (src, &src_map_info);
+  return FALSE;
 }
 
 // vim: set expandtab tabstop=2 shiftwidth=2 autoindent smartindent:
