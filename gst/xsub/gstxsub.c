@@ -119,7 +119,10 @@ static void gst_xsub_get_property (GObject * object, guint prop_id,
 static gboolean gst_xsub_set_caps (GstPad * pad, GstCaps * caps);
 static GstFlowReturn gst_xsub_frame_chain (GstPad * pad, GstBuffer * buf);
 static GstFlowReturn gst_xsub_spu_chain (GstPad * pad, GstBuffer * buf);
-static gboolean xsub_sink_event (GstPad * pad, GstEvent * event);
+static gboolean xsub_sink_event_spu (GstPad * pad, GstObject * parent,
+    GstEvent * event);
+static gboolean xsub_sink_event_pic (GstPad * pad, GstObject * parent,
+    GstEvent * event);
 
 /* GObject vmethod implementations */
 
@@ -171,12 +174,11 @@ gst_xsub_init (GstXSub * filter)
   /* Picture in */
   filter->video_sink = gst_pad_new_from_static_template (&sink_factory_pict,
       "video_sink");
-  gst_pad_set_setcaps_function (filter->video_sink,
-      GST_DEBUG_FUNCPTR (gst_xsub_set_caps));
-  gst_pad_set_getcaps_function (filter->video_sink,
-      GST_DEBUG_FUNCPTR (gst_pad_proxy_getcaps));
+  GST_PAD_SET_PROXY_CAPS (filter->video_sink);
   gst_pad_set_chain_function (filter->video_sink,
       GST_DEBUG_FUNCPTR (gst_xsub_frame_chain));
+  gst_pad_set_event_function (filter->video_sink,
+      GST_DEBUG_FUNCPTR (xsub_sink_event_pic));
 
   /* Subpicture in */
   filter->xsub_sink = gst_pad_new_from_static_template (&sink_factory_xsub,
@@ -184,7 +186,7 @@ gst_xsub_init (GstXSub * filter)
   gst_pad_set_chain_function (filter->xsub_sink,
       GST_DEBUG_FUNCPTR (gst_xsub_spu_chain));
   gst_pad_set_event_function (filter->xsub_sink,
-      GST_DEBUG_FUNCPTR (xsub_sink_event));
+      GST_DEBUG_FUNCPTR (xsub_sink_event_spu));
 
   /* Mixed out */
   filter->src = gst_pad_new_from_static_template (&src_factory_mixed, "src");
@@ -196,10 +198,29 @@ gst_xsub_init (GstXSub * filter)
 
 /* drop all events on xsub sink pad */
 static gboolean
-xsub_sink_event (GstPad * pad, GstEvent * event)
+xsub_sink_event_spu (GstPad * pad, GstObject * parent, GstEvent * event)
 {
-  gst_event_unref (event);
-  return TRUE;
+  return gst_pad_event_default (pad, parent, event);
+}
+
+/* Handle events on picture sink pad */
+static gboolean
+xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
+{
+  GstCaps *caps;
+  gboolean ret;
+
+  switch (GST_EVENT_TYPE (event)) {
+    case GST_EVENT_CAPS:
+      gst_event_parse_caps (event, &caps);
+      ret = gst_xsub_set_caps (pad, caps);
+      break;
+    default:
+      ret = gst_pad_event_default (pad, parent, event);
+      break;
+  }
+
+  return ret;
 }
 
 static void
