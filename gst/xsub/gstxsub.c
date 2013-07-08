@@ -117,8 +117,10 @@ static void gst_xsub_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 
 static gboolean gst_xsub_set_caps (GstPad * pad, GstCaps * caps);
-static GstFlowReturn gst_xsub_frame_chain (GstPad * pad, GstBuffer * buf);
-static GstFlowReturn gst_xsub_spu_chain (GstPad * pad, GstBuffer * buf);
+static GstFlowReturn gst_xsub_frame_chain (GstPad * pad, GstObject * parent,
+    GstBuffer * buf);
+static GstFlowReturn gst_xsub_spu_chain (GstPad * pad, GstObject * parent,
+    GstBuffer * buf);
 static gboolean xsub_sink_event_spu (GstPad * pad, GstObject * parent,
     GstEvent * event);
 static gboolean xsub_sink_event_pic (GstPad * pad, GstObject * parent,
@@ -280,14 +282,14 @@ gst_xsub_set_caps (GstPad * pad, GstCaps * caps)
  * otherwise it just copies frame data to output pad.
  */
 static GstFlowReturn
-gst_xsub_frame_chain (GstPad * pad, GstBuffer * buf)
+gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
   GstXSub *filter;
   GstXSubData *spu;
   GstMapInfo pict_map, spu_map;
   int i;
 
-  filter = GST_XSUB (GST_OBJECT_PARENT (pad));
+  filter = GST_XSUB (parent);
 
   GST_DEBUG_OBJECT (pad, "Frame chain in width:%d height:%d", filter->width,
       filter->height);
@@ -384,12 +386,12 @@ CLEANUP_AND_PUSH:
  * as they come and fills the SPU buffer
  */
 static GstFlowReturn
-gst_xsub_spu_chain (GstPad * pad, GstBuffer * buf)
+gst_xsub_spu_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
   GstXSub *filter;
   GstXSubData *parsed;
 
-  filter = GST_XSUB (GST_OBJECT_PARENT (pad));
+  filter = GST_XSUB (parent);
 
   GST_DEBUG_OBJECT (pad, "SPU in");
 
