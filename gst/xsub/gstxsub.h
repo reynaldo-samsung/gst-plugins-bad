@@ -77,7 +77,7 @@ struct _GstXSub
 
   GQueue *spu_queue;
 
-  GStaticMutex lock;
+  GMutex lock;
 
   gint width, height;
 };
