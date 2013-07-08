@@ -128,10 +128,12 @@ static gboolean xsub_sink_event_pic (GstPad * pad, GstObject * parent,
 
 /* GObject vmethod implementations */
 
+/* initialize the xsub's class */
 static void
-gst_xsub_base_init (gpointer gclass)
+gst_xsub_class_init (GstXSubClass * klass)
 {
-  GstElementClass *element_class = GST_ELEMENT_CLASS (gclass);
+  GObjectClass *gobject_class = (GObjectClass *) klass;
+  GstElementClass *element_class = GST_ELEMENT_CLASS (klass);
 
   gst_element_class_set_metadata (element_class,
       "XSub",
@@ -145,13 +147,6 @@ gst_xsub_base_init (gpointer gclass)
       gst_static_pad_template_get (&sink_factory_xsub));
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&sink_factory_pict));
-}
-
-/* initialize the xsub's class */
-static void
-gst_xsub_class_init (GstXSubClass * klass)
-{
-  GObjectClass *gobject_class = (GObjectClass *) klass;
 
   gobject_class->set_property = gst_xsub_set_property;
   gobject_class->get_property = gst_xsub_get_property;
