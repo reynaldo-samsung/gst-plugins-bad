@@ -406,7 +406,7 @@ gst_xsub_spu_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
     g_mutex_lock (&filter->lock);
     g_queue_push_tail (filter->spu_queue, parsed);
 
-    GST_DEBUG_OBJECT (pad, "Parsed #%d: [(%hu,%hu)-(%hu,%hu)] Size: %d",
+    GST_DEBUG_OBJECT (pad, "Parsed #%d: [(%hu,%hu)-(%hu,%hu)] Size: %zu",
         g_queue_get_length (filter->spu_queue),
         parsed->coords[0], parsed->coords[1], parsed->coords[2],
         parsed->coords[3], gst_buffer_get_size (parsed->buf));
