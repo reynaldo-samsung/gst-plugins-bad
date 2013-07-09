@@ -93,7 +93,7 @@ static GstStaticPadTemplate sink_factory_xsub =
 GST_STATIC_PAD_TEMPLATE ("xsub_sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("video/x-avi-unknown, format = (fourcc) DXSB")
+    GST_STATIC_CAPS ("video/x-avi-unknown, fourcc:fourcc=\"DXSB\"")
     );
 
 static GstStaticPadTemplate sink_factory_pict =
@@ -436,7 +436,7 @@ xsub_init (GstPlugin * xsub)
  */
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
-    "xsub",
+    xsub,
     "GStreamer plugin for the decoding and overlay of XSUB subtitles",
     xsub_init, VERSION, "LGPL", GST_PACKAGE_NAME, GST_PACKAGE_ORIGIN)
 // vim: set expandtab tabstop=2 shiftwidth=2 autoindent smartindent:
