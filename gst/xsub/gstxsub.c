@@ -195,14 +195,14 @@ gst_xsub_init (GstXSub * filter)
 
 /* drop all events on xsub sink pad */
 static gboolean
-xsub_sink_event_spu (GstPad * pad, GstObject * parent, GstEvent * event)
+xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
 {
   return gst_pad_event_default (pad, parent, event);
 }
 
 /* Handle events on picture sink pad */
 static gboolean
-xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
+xsub_sink_event_spu (GstPad * pad, GstObject * parent, GstEvent * event)
 {
   GstCaps *caps;
   gboolean ret;
