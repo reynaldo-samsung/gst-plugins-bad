@@ -217,7 +217,6 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, GstBuffer * src)
    * build this image so its format preserves that depth
    */
   spu_size = dest->width * dest->height * XSUB_RGB_BPP;
-  gst_buffer_set_size (dest->buf, spu_size);
   spu_mem = gst_allocator_alloc (NULL, spu_size, NULL);
   gst_buffer_insert_memory (dest->buf, -1, spu_mem);
 
