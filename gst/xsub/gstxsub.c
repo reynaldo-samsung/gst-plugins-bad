@@ -317,12 +317,13 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
     buf = gst_buffer_make_writable (buf);
     if (!gst_buffer_map (buf, &pict_map, GST_MAP_WRITE)) {
       GST_ERROR_OBJECT (pad, "Map failed on picture buffer");
-      goto CLEANUP_AND_PUSH;
+      goto PUSH;
     }
 
     if (!gst_buffer_map (spu->buf, &spu_map, GST_MAP_READ)) {
       GST_ERROR_OBJECT (pad, "Map failed on spu buffer");
-      goto CLEANUP_AND_PUSH;
+      gst_buffer_unmap (buf, &pict_map);
+      goto PUSH;
     }
 
     GST_DEBUG_OBJECT (pad, "pict/spu map succeed");
@@ -365,12 +366,11 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
       }
 
     GST_DEBUG_OBJECT (pad, "Blitted a spu!");
-
+    gst_buffer_unmap (buf, &pict_map);
+    gst_buffer_unmap (spu->buf, &spu_map);
   }
 
-CLEANUP_AND_PUSH:
-  gst_buffer_unmap (buf, &pict_map);
-  gst_buffer_unmap (spu->buf, &spu_map);
+PUSH:
   g_mutex_unlock (&filter->lock);
   return gst_pad_push (filter->src, buf);
 }
