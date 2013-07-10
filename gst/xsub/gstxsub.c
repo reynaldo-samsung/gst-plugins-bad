@@ -93,7 +93,7 @@ static GstStaticPadTemplate sink_factory_xsub =
 GST_STATIC_PAD_TEMPLATE ("xsub_sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("video/x-avi-unknown, fourcc:fourcc=\"DXSB\"")
+    GST_STATIC_CAPS ("subpicture/x-xsub")
     );
 
 static GstStaticPadTemplate sink_factory_pict =
