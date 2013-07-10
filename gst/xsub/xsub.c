@@ -161,6 +161,12 @@ xsub_parse_header (GstPad * pad, GstXSubData * dest, GstBuffer * src)
     ret = FALSE;
   }
 
+  GST_DEBUG_OBJECT (pad, "Parsed SPU w: %" G_GINT16_FORMAT
+      " h:%" G_GINT16_FORMAT " x0: %" G_GINT16_FORMAT
+      " y0:%" G_GINT16_FORMAT " x1: %" G_GINT16_FORMAT
+      " y1:%" G_GINT16_FORMAT, dest->width, dest->height,
+      dest->coords[0], dest->coords[1], dest->coords[2], dest->coords[3]);
+
   dest->header_size = gst_byte_reader_get_pos (header);
 
   if (!has_time)
