@@ -229,6 +229,19 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, GstBuffer * src)
 
   /* SPU decoding */
 
+  /* Uncomment this and set the show-background
+   * property to TRUE to produce a black rectangle
+   * of the correct size for each spu. This is useful
+   * for testing correct positioning of the spu frame
+   * within the video frame.
+
+   memset (spu_map_info.data, 0, spu_size);
+   gst_buffer_unmap (src, &src_map_info);
+   gst_buffer_unmap (src, &spu_map_info);
+   return TRUE;
+
+   */
+
   /* By the time we get here we know buffer has at least header_size bytes */
   haystack = gst_bit_reader_new (src_map_info.data + dest->header_size,
       dest->rle_length);
