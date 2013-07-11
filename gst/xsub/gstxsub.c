@@ -193,31 +193,30 @@ gst_xsub_init (GstXSub * filter)
   gst_element_add_pad (GST_ELEMENT (filter), filter->src);
 }
 
-/* drop all events on xsub sink pad */
+/* Drop all events on spu sink pad for now */
 static gboolean
-xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
+xsub_sink_event_spu (GstPad * pad, GstObject * parent, GstEvent * event)
 {
   return gst_pad_event_default (pad, parent, event);
 }
 
 /* Handle events on picture sink pad */
 static gboolean
-xsub_sink_event_spu (GstPad * pad, GstObject * parent, GstEvent * event)
+xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
 {
   GstCaps *caps;
-  gboolean ret;
 
   switch (GST_EVENT_TYPE (event)) {
     case GST_EVENT_CAPS:
       gst_event_parse_caps (event, &caps);
-      ret = gst_xsub_set_caps (pad, caps);
+      if (!gst_xsub_set_caps (pad, caps))
+        return FALSE;
       break;
     default:
-      ret = gst_pad_event_default (pad, parent, event);
       break;
   }
 
-  return ret;
+  return gst_pad_event_default (pad, parent, event);
 }
 
 static void
