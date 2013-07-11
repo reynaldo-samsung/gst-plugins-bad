@@ -1,7 +1,7 @@
 /*
  * GStreamer plugin for the decoding and overlay of XSUB subtitles.
  * Copyright (C) 2010 Collabora Multimedia
- * Copyright (C) 2011 Collabora Ltd.
+ * Copyright (C) 2011-2013 Collabora Ltd.
  *
  * @Author: Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>
  *

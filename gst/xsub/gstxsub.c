@@ -1,7 +1,7 @@
 /*
  * GStreamer plugin for the decoding and overlay of XSUB subtitles.
  * Copyright (C) 2010 Collabora Multimedia
- * Copyright (C) 2011 Collabora Ltd.
+ * Copyright (C) 2011-2013 Collabora Ltd.
  *
  * @Author: Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>
  *
@@ -53,7 +53,11 @@
  * <refsect2>
  * <title>Example launch line</title>
  * |[
- * gst-launch -v -m fakesrc ! xsub ! fakesink show-background=FALSE
+ * gst-launch-1.0 -v xsub name=overlay show-background=FALSE ! videoconvert
+ * ! videorate ! eglglessink filesrc location=/path/to/file.divx
+ * ! avidemux name=d d.video_0 ! queue ! mpeg4videoparse ! avdec_mpeg4
+ * ! videoconvert !  overlay.video_sink d.video_1 ! queue
+ * ! overlay.xsub_sink
  * ]|
  * </refsect2>
  */
@@ -72,22 +76,13 @@
 GST_DEBUG_CATEGORY (xsub_debug);
 #define DEFAULT_SHOWBG FALSE
 
-/* Filter signals and args
-enum
-{
-  LAST_SIGNAL
-};
-*/
-
 enum
 {
   PROP_0,
   PROP_SHOWBG
 };
 
-/* the capabilities of the inputs and outputs.
- *
- * FIXME: add proper caps/mapping for xsub
+/* The capabilities of the inputs and outputs.
  */
 static GstStaticPadTemplate sink_factory_xsub =
 GST_STATIC_PAD_TEMPLATE ("xsub_sink",
@@ -128,7 +123,7 @@ static gboolean xsub_sink_event_pic (GstPad * pad, GstObject * parent,
 
 /* GObject vmethod implementations */
 
-/* initialize the xsub's class */
+/* Initialize the xsub's class */
 static void
 gst_xsub_class_init (GstXSubClass * klass)
 {
@@ -139,7 +134,7 @@ gst_xsub_class_init (GstXSubClass * klass)
       "XSub",
       "FIXME:Generic",
       "Decodes and Overlays XSUB Subtitles",
-      "Reynaldo H. Verdejo Pinochet <reynaldo@opendot.cl>");
+      "Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>");
 
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&src_factory_mixed));
@@ -152,11 +147,11 @@ gst_xsub_class_init (GstXSubClass * klass)
   gobject_class->get_property = gst_xsub_get_property;
 
   g_object_class_install_property (gobject_class, PROP_SHOWBG,
-      g_param_spec_boolean ("show-background", "Show", "Show SPU Background ?",
-          DEFAULT_SHOWBG, G_PARAM_READWRITE));
+      g_param_spec_boolean ("show-background", "Showbg",
+          "Show SPU Background ?", DEFAULT_SHOWBG, G_PARAM_READWRITE));
 }
 
-/* initialize the new element
+/* Initialize the new element
  * instantiate pads and add them to element
  * set pad calback functions
  * initialize instance structure
@@ -253,8 +248,7 @@ gst_xsub_get_property (GObject * object, guint prop_id,
 
 /* GstElement vmethod implementations */
 
-/* this function handles the link with other elements */
-
+/* This function handles the link with other elements */
 static gboolean
 gst_xsub_set_caps (GstPad * pad, GstCaps * caps)
 {
@@ -271,8 +265,9 @@ gst_xsub_set_caps (GstPad * pad, GstCaps * caps)
   return TRUE;
 }
 
-/* chain function for frame data
- * this function blends frame data with subpicture data when needed,
+/* Chain function for frame data
+ *
+ * This function blends frame data with subpicture data when needed,
  * otherwise it just copies frame data to output pad.
  */
 static GstFlowReturn
@@ -375,7 +370,8 @@ PUSH:
 }
 
 
-/* chain function for subpicture data
+/* Chain function for subpicture data
+ *
  * This function asks for the decoding of XSUB packets
  * as they come and fills the SPU buffer
  */
@@ -415,9 +411,10 @@ gst_xsub_spu_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   return GST_FLOW_OK;
 }
 
-/* entry point to initialize the plug-in
- * initialize the plug-in itself
- * register the element factories and other features
+/* Entry point to initialize the plug-in
+ *
+ * Initialize the plug-in itself & register element factories and
+ * other features
  */
 static gboolean
 xsub_init (GstPlugin * xsub)
@@ -429,9 +426,7 @@ xsub_init (GstPlugin * xsub)
   return gst_element_register (xsub, "xsub", GST_RANK_NONE, GST_TYPE_XSUB);
 }
 
-/* gstreamer looks for this structure to register xsubs
- *
- * exchange the string 'Template xsub' with your xsub description
+/* GStreamer looks for this structure to register xsubs
  */
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
     GST_VERSION_MINOR,

@@ -1,7 +1,7 @@
 /*
  * GStreamer plugin for the decoding and overlay of XSUB subtitles.
  * Copyright (C) 2010 Collabora Multimedia
- * Copyright (C) 2011 Collabora Ltd.
+ * Copyright (C) 2011-2013 Collabora Ltd.
  *
  * @Author: Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>
  *
@@ -212,10 +212,7 @@ xsub_parse_spu (GstPad * pad, GstXSubData * dest, GstBuffer * src)
     goto bail_src_mapped;
   }
 
-  /* FIXME, this is drafted over RGB 24bpp output
-   * Should probably get bpp from upstream and then
-   * build this image so its format preserves that depth
-   */
+  /* FIXME: Extend this beyond RGB 24bpp output */
   spu_size = dest->width * dest->height * XSUB_RGB_BPP;
   spu_mem = gst_allocator_alloc (NULL, spu_size, NULL);
   gst_buffer_insert_memory (dest->buf, -1, spu_mem);
