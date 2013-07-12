@@ -314,7 +314,7 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   if (spu) {
     GST_DEBUG_OBJECT (pad, "Have SPU data for this frame");
     buf = gst_buffer_make_writable (buf);
-    if (!gst_buffer_map (buf, &pict_map, GST_MAP_WRITE)) {
+    if (!gst_buffer_map (buf, &pict_map, GST_MAP_READWRITE)) {
       GST_ERROR_OBJECT (pad, "Map failed on picture buffer");
       goto PUSH;
     }
