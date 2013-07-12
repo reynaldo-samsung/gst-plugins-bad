@@ -208,8 +208,10 @@ xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
   switch (GST_EVENT_TYPE (event)) {
     case GST_EVENT_CAPS:
       gst_event_parse_caps (event, &caps);
-      if (!gst_xsub_set_caps (pad, caps))
+      if (!gst_xsub_set_caps (pad, caps)) {
+        gst_event_unref (event);
         return FALSE;
+      }
       break;
     default:
       break;
