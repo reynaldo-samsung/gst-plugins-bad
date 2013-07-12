@@ -147,8 +147,9 @@ gst_xsub_class_init (GstXSubClass * klass)
   gobject_class->get_property = gst_xsub_get_property;
 
   g_object_class_install_property (gobject_class, PROP_SHOWBG,
-      g_param_spec_boolean ("show-background", "Showbg",
-          "Show SPU Background ?", DEFAULT_SHOWBG, G_PARAM_READWRITE));
+      g_param_spec_boolean ("show-background", "Show Background",
+          "Show SPU Background ?", DEFAULT_SHOWBG,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 /* Initialize the new element
