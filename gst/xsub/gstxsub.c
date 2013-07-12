@@ -192,7 +192,6 @@ gst_xsub_init (GstXSub * filter)
   gst_element_add_pad (GST_ELEMENT (filter), filter->src);
 }
 
-/* Drop all events on spu sink pad for now */
 static gboolean
 xsub_sink_event_spu (GstPad * pad, GstObject * parent, GstEvent * event)
 {
