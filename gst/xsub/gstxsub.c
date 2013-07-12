@@ -168,6 +168,9 @@ gst_xsub_init (GstXSub * filter)
   filter->video_sink = gst_pad_new_from_static_template (&sink_factory_pict,
       "video_sink");
   GST_PAD_SET_PROXY_CAPS (filter->video_sink);
+  GST_PAD_SET_PROXY_SCHEDULING (filter->video_sink);
+  GST_PAD_SET_PROXY_ALLOCATION (filter->video_sink);
+
   gst_pad_set_chain_function (filter->video_sink,
       GST_DEBUG_FUNCPTR (gst_xsub_frame_chain));
   gst_pad_set_event_function (filter->video_sink,
