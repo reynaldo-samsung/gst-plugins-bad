@@ -280,6 +280,7 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   GstXSub *filter;
   GstXSubData *spu;
   GstMapInfo pict_map, spu_map;
+  guint64 spu_start, spu_stop, frame_start, frame_stop;
   int i;
 
   filter = GST_XSUB (parent);
@@ -287,15 +288,24 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   GST_DEBUG_OBJECT (pad, "Frame chain in width:%d height:%d", filter->width,
       filter->height);
 
+  frame_start = GST_BUFFER_TIMESTAMP (buf);
+  frame_stop = frame_start + GST_BUFFER_DURATION (buf);
+
   /* Here comes the blending logic */
 
   g_mutex_lock (&filter->lock);
 
   while ((spu = g_queue_peek_head (filter->spu_queue))) {
 
-    if (GST_BUFFER_TIMESTAMP (buf) >= GST_BUFFER_TIMESTAMP (spu->buf)) {
-      if (GST_BUFFER_TIMESTAMP (buf) <= GST_BUFFER_TIMESTAMP (spu->buf) +
-          GST_BUFFER_DURATION (spu->buf))
+    spu_start = GST_BUFFER_TIMESTAMP (spu->buf);
+    spu_stop = spu_start + GST_BUFFER_DURATION (spu->buf);
+
+    if (frame_start < spu_start && frame_stop > spu_stop)
+      break;
+
+    if (frame_start >= spu_start) {
+
+      if (frame_start <= spu_stop)
         break;
 
       gst_buffer_unref (spu->buf);
