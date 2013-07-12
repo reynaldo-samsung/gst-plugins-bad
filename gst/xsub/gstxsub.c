@@ -111,7 +111,7 @@ static void gst_xsub_set_property (GObject * object, guint prop_id,
 static void gst_xsub_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 
-static gboolean gst_xsub_set_caps (GstPad * pad, GstCaps * caps);
+static gboolean gst_xsub_set_video_caps (GstPad * pad, GstCaps * caps);
 static GstFlowReturn gst_xsub_frame_chain (GstPad * pad, GstObject * parent,
     GstBuffer * buf);
 static GstFlowReturn gst_xsub_spu_chain (GstPad * pad, GstObject * parent,
@@ -208,7 +208,7 @@ xsub_sink_event_pic (GstPad * pad, GstObject * parent, GstEvent * event)
   switch (GST_EVENT_TYPE (event)) {
     case GST_EVENT_CAPS:
       gst_event_parse_caps (event, &caps);
-      if (!gst_xsub_set_caps (pad, caps)) {
+      if (!gst_xsub_set_video_caps (pad, caps)) {
         gst_event_unref (event);
         return FALSE;
       }
@@ -254,9 +254,8 @@ gst_xsub_get_property (GObject * object, guint prop_id,
 
 /* GstElement vmethod implementations */
 
-/* This function handles the link with other elements */
 static gboolean
-gst_xsub_set_caps (GstPad * pad, GstCaps * caps)
+gst_xsub_set_video_caps (GstPad * pad, GstCaps * caps)
 {
   GstXSub *filter;
   GstStructure *structure = gst_caps_get_structure (caps, 0);
