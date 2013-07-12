@@ -79,7 +79,7 @@ GST_DEBUG_CATEGORY (xsub_debug);
 enum
 {
   PROP_0,
-  PROP_SHOWBG
+  PROP_SHOW_BACKGROUND
 };
 
 /* The capabilities of the inputs and outputs.
@@ -146,7 +146,7 @@ gst_xsub_class_init (GstXSubClass * klass)
   gobject_class->set_property = gst_xsub_set_property;
   gobject_class->get_property = gst_xsub_get_property;
 
-  g_object_class_install_property (gobject_class, PROP_SHOWBG,
+  g_object_class_install_property (gobject_class, PROP_SHOW_BACKGROUND,
       g_param_spec_boolean ("show-background", "Show Background",
           "Show SPU Background ?", DEFAULT_SHOWBG,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -226,7 +226,7 @@ gst_xsub_set_property (GObject * object, guint prop_id,
   GstXSub *filter = GST_XSUB (object);
 
   switch (prop_id) {
-    case PROP_SHOWBG:
+    case PROP_SHOW_BACKGROUND:
       g_atomic_int_set (&filter->show_bg, g_value_get_boolean (value));
       break;
     default:
@@ -242,7 +242,7 @@ gst_xsub_get_property (GObject * object, guint prop_id,
   GstXSub *filter = GST_XSUB (object);
 
   switch (prop_id) {
-    case PROP_SHOWBG:
+    case PROP_SHOW_BACKGROUND:
       g_value_set_boolean (value, g_atomic_int_get (&filter->show_bg));
       break;
     default:
