@@ -132,7 +132,7 @@ gst_xsub_class_init (GstXSubClass * klass)
 
   gst_element_class_set_metadata (element_class,
       "XSub",
-      "FIXME:Generic",
+      "Mixer/Video/Overlay/Subtitle",
       "Decodes and Overlays XSUB Subtitles",
       "Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>");
 
