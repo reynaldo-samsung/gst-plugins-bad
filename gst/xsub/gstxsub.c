@@ -160,7 +160,7 @@ gst_xsub_class_init (GstXSubClass * klass)
 static void
 gst_xsub_init (GstXSub * filter)
 {
-  g_mutex_init (&filter->lock);
+  g_mutex_init (&filter->spu_queue_lock);
   filter->spu_queue = g_queue_new ();
   filter->show_bg = DEFAULT_SHOWBG;
 
@@ -293,7 +293,7 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 
   /* Here comes the blending logic */
 
-  g_mutex_lock (&filter->lock);
+  g_mutex_lock (&filter->spu_queue_lock);
 
   while ((spu = g_queue_peek_head (filter->spu_queue))) {
 
@@ -379,7 +379,7 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   }
 
 PUSH:
-  g_mutex_unlock (&filter->lock);
+  g_mutex_unlock (&filter->spu_queue_lock);
   return gst_pad_push (filter->src, buf);
 }
 
@@ -412,14 +412,14 @@ gst_xsub_spu_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
   } else {
     /* Save parsed data into spu_queue */
     parsed->bgless_row = g_slice_alloc (parsed->width * XSUB_RGB_BPP);
-    g_mutex_lock (&filter->lock);
+    g_mutex_lock (&filter->spu_queue_lock);
     g_queue_push_tail (filter->spu_queue, parsed);
 
     GST_DEBUG_OBJECT (pad, "Parsed #%d: [(%hu,%hu)-(%hu,%hu)] Size: %zu",
         g_queue_get_length (filter->spu_queue),
         parsed->coords[0], parsed->coords[1], parsed->coords[2],
         parsed->coords[3], gst_buffer_get_size (parsed->buf));
-    g_mutex_unlock (&filter->lock);
+    g_mutex_unlock (&filter->spu_queue_lock);
   }
 
   return GST_FLOW_OK;
