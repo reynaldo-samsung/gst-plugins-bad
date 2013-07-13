@@ -1,0 +1,10 @@
+- Hook event handler on video_sink to handle EOF and FLUSH_STOP.
+- Implement cleaning-lady routine at EOF from video_sink.
+- Cut off background-only rows from SPU frame when in HIDEBG mode
+- Add int flags to manually tweak SPU frame position inside picture frame.
+  Current code does this automagically on off bound coord data by using
+  0 as start Coord.
+- Implement a timeout count for stoping asking packets to be resent if
+  hopelessly broken.
+- Add proper caps/mapping for xsub
+

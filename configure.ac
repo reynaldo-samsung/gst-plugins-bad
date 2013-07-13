@@ -415,6 +415,7 @@ AG_GST_CHECK_PLUGIN(videomeasure)
 AG_GST_CHECK_PLUGIN(videoparsers)
 AG_GST_CHECK_PLUGIN(videosignal)
 AG_GST_CHECK_PLUGIN(vmnc)
+AG_GST_CHECK_PLUGIN(xsub)
 AG_GST_CHECK_PLUGIN(y4m)
 AG_GST_CHECK_PLUGIN(yadif)
 
@@ -2413,6 +2414,7 @@ gst/videomeasure/Makefile
 gst/videoparsers/Makefile
 gst/videosignal/Makefile
 gst/vmnc/Makefile
+gst/xsub/Makefile
 gst/y4m/Makefile
 gst/yadif/Makefile
 gst-libs/Makefile
