@@ -74,7 +74,7 @@ struct _GstXSub
 
   gboolean show_bg;
 
-  GQueue *spu_queue;
+  GQueue spu_queue;
 
   GMutex spu_queue_lock;
 

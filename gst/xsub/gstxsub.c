@@ -161,7 +161,7 @@ static void
 gst_xsub_init (GstXSub * filter)
 {
   g_mutex_init (&filter->spu_queue_lock);
-  filter->spu_queue = g_queue_new ();
+  g_queue_init (&filter->spu_queue);
   filter->show_bg = DEFAULT_SHOWBG;
 
   /* Picture in */
@@ -292,7 +292,7 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 
   g_mutex_lock (&filter->spu_queue_lock);
 
-  while ((spu = g_queue_peek_head (filter->spu_queue))) {
+  while ((spu = g_queue_peek_head (&filter->spu_queue))) {
 
     spu_start = GST_BUFFER_TIMESTAMP (spu->buf);
     spu_stop = spu_start + GST_BUFFER_DURATION (spu->buf);
@@ -307,7 +307,7 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 
       gst_buffer_unref (spu->buf);
       g_slice_free1 (spu->width * 3, spu->bgless_row);
-      g_queue_remove (filter->spu_queue, spu);
+      g_queue_remove (&filter->spu_queue, spu);
       g_slice_free1 (sizeof (GstXSubData), spu);
       continue;
     }
@@ -410,10 +410,10 @@ gst_xsub_spu_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
     /* Save parsed data into spu_queue */
     parsed->bgless_row = g_slice_alloc (parsed->width * XSUB_RGB_BPP);
     g_mutex_lock (&filter->spu_queue_lock);
-    g_queue_push_tail (filter->spu_queue, parsed);
+    g_queue_push_tail (&filter->spu_queue, parsed);
 
     GST_DEBUG_OBJECT (pad, "Parsed #%d: [(%hu,%hu)-(%hu,%hu)] Size: %zu",
-        g_queue_get_length (filter->spu_queue),
+        g_queue_get_length (&filter->spu_queue),
         parsed->coords[0], parsed->coords[1], parsed->coords[2],
         parsed->coords[3], gst_buffer_get_size (parsed->buf));
     g_mutex_unlock (&filter->spu_queue_lock);
