@@ -2,8 +2,9 @@
  * GStreamer plugin for the decoding and overlay of XSUB subtitles.
  * Copyright (C) 2010 Collabora Multimedia
  * Copyright (C) 2011-2013 Collabora Ltd.
+ * Copyright (C) 2013 Samsung Electronics. All rights reserved
  *
- * @Author: Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>
+ * @Author: Reynaldo H. Verdejo Pinochet <r.verdejo@sisa.samsung.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
