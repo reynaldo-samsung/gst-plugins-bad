@@ -283,6 +283,12 @@ gst_xsub_frame_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 
   filter = GST_XSUB (parent);
 
+  if (!GST_BUFFER_TIMESTAMP_IS_VALID (buf)) {
+    GST_WARNING_OBJECT (pad, "Buffer without a timestamp. Discarding");
+    gst_buffer_unref (buf);
+    return GST_FLOW_OK;
+  }
+
   GST_DEBUG_OBJECT (pad, "Frame chain in width:%d height:%d", filter->width,
       filter->height);
 
