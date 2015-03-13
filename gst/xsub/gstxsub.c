@@ -57,7 +57,7 @@
  * gst-launch-1.0 -v xsub name=overlay show-background=FALSE ! videoconvert
  * ! videorate ! eglglessink filesrc location=/path/to/file.divx
  * ! avidemux name=d d.video_0 ! queue ! mpeg4videoparse ! avdec_mpeg4
- * ! videoconvert !  overlay.video_sink d.video_1 ! queue
+ * ! videoconvert !  overlay.video_sink d.subpicture_0 ! queue
  * ! overlay.xsub_sink
  * ]|
  * </refsect2>
