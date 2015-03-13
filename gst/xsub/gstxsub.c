@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013 Collabora Ltd.
  * Copyright (C) 2013 Samsung Electronics. All rights reserved
  *
- * @Author: Reynaldo H. Verdejo Pinochet <r.verdejo@sisa.samsung.com>
+ * @Author: Reynaldo H. Verdejo Pinochet <reynaldo@osg.samsung.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -135,7 +135,7 @@ gst_xsub_class_init (GstXSubClass * klass)
       "XSub",
       "Mixer/Video/Overlay/Subtitle",
       "Decodes and Overlays XSUB Subtitles",
-      "Reynaldo H. Verdejo Pinochet <reynaldo@collabora.com>");
+      "Reynaldo H. Verdejo Pinochet <reynaldo@osg.samsung.com>");
 
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&src_factory_mixed));
