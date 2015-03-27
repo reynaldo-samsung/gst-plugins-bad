@@ -49,6 +49,8 @@ typedef struct _GstTestAggregatorClass GstTestAggregatorClass;
 static GType gst_test_aggregator_get_type (void);
 
 #define BUFFER_DURATION 100000000       /* 10 frames per second */
+#define TEST_GAP_PTS 0
+#define TEST_GAP_DURATION (5 * GST_SECOND)
 
 struct _GstTestAggregator
 {
@@ -221,13 +223,11 @@ static GstStaticPadTemplate sinktemplate = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS_ANY);
 
-static gpointer
-push_buffer (gpointer user_data)
+static void
+start_flow (ChainData * chain_data)
 {
-  GstFlowReturn flow;
-  GstCaps *caps;
-  ChainData *chain_data = (ChainData *) user_data;
   GstSegment segment;
+  GstCaps *caps;
 
   gst_pad_push_event (chain_data->srcpad, gst_event_new_stream_start ("test"));
 
@@ -237,6 +237,15 @@ push_buffer (gpointer user_data)
 
   gst_segment_init (&segment, GST_FORMAT_TIME);
   gst_pad_push_event (chain_data->srcpad, gst_event_new_segment (&segment));
+}
+
+static gpointer
+push_buffer (gpointer user_data)
+{
+  GstFlowReturn flow;
+  ChainData *chain_data = (ChainData *) user_data;
+
+  start_flow (chain_data);
 
   GST_DEBUG ("Pushing buffer on pad: %s:%s",
       GST_DEBUG_PAD_NAME (chain_data->sinkpad));
@@ -254,12 +263,31 @@ static gpointer
 push_event (gpointer user_data)
 {
   ChainData *chain_data = (ChainData *) user_data;
+  GstBuffer *buf;
+  GstEventType event_type;
+
+  start_flow (chain_data);
 
   GST_INFO_OBJECT (chain_data->srcpad, "Pushing event: %"
       GST_PTR_FORMAT, chain_data->event);
   fail_unless (gst_pad_push_event (chain_data->srcpad,
           chain_data->event) == TRUE);
 
+  event_type = GST_EVENT_TYPE (chain_data->event);
+  switch (event_type) {
+    case GST_EVENT_GAP:
+      buf = gst_aggregator_pad_get_buffer
+          ((GstAggregatorPad *) chain_data->sinkpad);
+      fail_unless (buf);
+      fail_unless (GST_BUFFER_PTS (buf) == TEST_GAP_PTS);
+      fail_unless (GST_BUFFER_DURATION (buf) == TEST_GAP_DURATION);
+      fail_unless (GST_BUFFER_FLAG_IS_SET (buf, GST_BUFFER_FLAG_GAP));
+      fail_unless (GST_BUFFER_FLAG_IS_SET (buf, GST_BUFFER_FLAG_DROPPABLE));
+      gst_buffer_unref (buf);
+      break;
+    default:
+      break;
+  }
   return NULL;
 }
 
@@ -432,6 +460,38 @@ GST_START_TEST (test_aggregate_eos)
   _chain_data_init (&data2, test.aggregator);
 
   data2.event = gst_event_new_eos ();
+
+  thread1 = g_thread_try_new ("gst-check", push_buffer, &data1, NULL);
+  thread2 = g_thread_try_new ("gst-check", push_event, &data2, NULL);
+
+  g_main_loop_run (test.ml);
+  g_source_remove (test.timeout_id);
+
+  /* these will return immediately as when the data is popped the threads are
+   * unlocked and will terminate */
+  g_thread_join (thread1);
+  g_thread_join (thread2);
+
+  _chain_data_clear (&data1);
+  _chain_data_clear (&data2);
+  _test_data_clear (&test);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_aggregate_gap)
+{
+  GThread *thread1, *thread2;
+
+  ChainData data1 = { 0, };
+  ChainData data2 = { 0, };
+  TestData test = { 0, };
+
+  _test_data_init (&test, FALSE);
+  _chain_data_init (&data1, test.aggregator);
+  _chain_data_init (&data2, test.aggregator);
+
+  data2.event = gst_event_new_gap (TEST_GAP_PTS, TEST_GAP_DURATION);
 
   thread1 = g_thread_try_new ("gst-check", push_buffer, &data1, NULL);
   thread2 = g_thread_try_new ("gst-check", push_event, &data2, NULL);
@@ -1099,6 +1159,7 @@ gst_aggregator_suite (void)
   suite_add_tcase (suite, general);
   tcase_add_test (general, test_aggregate);
   tcase_add_test (general, test_aggregate_eos);
+  tcase_add_test (general, test_aggregate_gap);
   tcase_add_test (general, test_flushing_seek);
   tcase_add_test (general, test_infinite_seek);
   tcase_add_test (general, test_infinite_seek_50_src);
