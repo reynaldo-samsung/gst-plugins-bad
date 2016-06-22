@@ -776,6 +776,42 @@ unknown_channel:
   }
 }
 
+typedef enum
+{
+  CHANNEL_CONF_FORMAT_NONE,
+  CHANNEL_CONF_FORMAT_DVBV5,
+  CHANNEL_CONF_FORMAT_ZAP
+} GstDvbChannelConfFormat;
+
+static GstDvbChannelConfFormat
+detect_file_format (const gchar * filename)
+{
+  gchar *contents;
+  gchar **lines;
+  gchar **line;
+  GstDvbChannelConfFormat ret;
+
+  if (!g_file_get_contents (filename, &contents, NULL, NULL))
+    goto open_fail;
+
+  lines = g_strsplit (contents, "\n", 0);
+  line = lines;
+  while (*line) {
+    GST_WARNING ("Config file line: %s", *line);
+    line++;
+  }
+  ret = CHANNEL_CONF_FORMAT_DVBV5;
+
+  g_strfreev (lines);
+  g_free (contents);
+  return ret;
+
+open_fail:
+  {
+    return CHANNEL_CONF_FORMAT_NONE;
+  }
+}
+
 gboolean
 set_properties_for_channel (GstElement * dvbbasebin,
     const gchar * channel_name, GError ** error)
@@ -790,23 +826,38 @@ set_properties_for_channel (GstElement * dvbbasebin,
         "gstreamer-" GST_API_VERSION, "dvb-channels.conf", NULL);
   }
 
-  /* TODO detect channels.conf file format */
-
   adapter = g_getenv ("GST_DVB_ADAPTER");
   if (adapter)
     g_object_set (dvbbasebin, "adapter", atoi (adapter), NULL);
 
-  if (!(ret = parse_and_configure_from_v5_conf_file (dvbbasebin, filename,
-              channel_name, error))) {
-    /* TODO only fallback if it was a parsing error */
-
-    g_clear_error (error);
-    GST_DEBUG_OBJECT (dvbbasebin, "Resorting to old ZAP format file parsing");
-
-    /* fallback to old format */
-    ret = parse_and_configure_from_zap_conf_file (dvbbasebin, filename,
-        channel_name, error);
+  switch (detect_file_format (filename)) {
+    case CHANNEL_CONF_FORMAT_DVBV5:
+      if (!parse_and_configure_from_v5_conf_file (dvbbasebin, filename,
+              channel_name, error)) {
+        g_clear_error (error);
+        GST_WARNING_OBJECT (dvbbasebin, "Could not parse dvbv5 file '%s'",
+            filename);
+      } else {
+        GST_INFO_OBJECT (dvbbasebin, "Parsed dvbv5 channel configuration file");
+        ret = TRUE;
+      }
+      break;
+    case CHANNEL_CONF_FORMAT_ZAP:
+      if (!parse_and_configure_from_zap_conf_file (dvbbasebin, filename,
+              channel_name, error)) {
+        g_clear_error (error);
+        GST_WARNING_OBJECT (dvbbasebin, "Could not parse dvbv5 file '%s'",
+            filename);
+      } else {
+        GST_INFO_OBJECT (dvbbasebin, "Parsed dvbv5 channel configuration file");
+        ret = TRUE;
+      }
+      break;
+    default:
+      GST_WARNING_OBJECT (dvbbasebin, "Unknown configuration file format. "
+          "Can not get parameters for channel");
   }
+
   g_free (filename);
   return ret;
 }
