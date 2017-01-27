@@ -41,7 +41,7 @@ check_assrender =
 endif
 
 if USE_DASH
-check_dash = elements/dash_mpd elements/dash_isoff
+check_dash = elements/dash_mpd
 check_dash_demux = elements/dash_demux
 else
 check_dash =
@@ -260,6 +260,7 @@ check_PROGRAMS = \
 	elements/jpegparse \
 	elements/h263parse \
 	elements/h264parse \
+	elements/isoff \
 	elements/mpegtsmux \
 	elements/mpegvideoparse \
 	elements/mpeg4videoparse \
@@ -292,7 +293,7 @@ check_PROGRAMS = \
 	$(check_player) \
 	$(EXPERIMENTAL_CHECKS)
 
-noinst_HEADERS = elements/mxfdemux.h elements/dash_isoff.h
+noinst_HEADERS = elements/mxfdemux.h elements/isoff.h
 
 TESTS = $(check_PROGRAMS)
 
@@ -449,10 +450,10 @@ elements_dash_mpd_LDADD = $(GST_BASE_LIBS) $(LDADD) $(LIBXML2_LIBS) \
 	$(top_builddir)/gst-libs/gst/uridownloader/libgsturidownloader-@GST_API_VERSION@.la
 elements_dash_mpd_SOURCES = elements/dash_mpd.c
 
-elements_dash_isoff_CFLAGS = $(AM_CFLAGS) $(GST_BASE_CFLAGS)
-elements_dash_isoff_LDADD = $(LDADD) $(GST_BASE_LIBS)\
+elements_isoff_CFLAGS = $(AM_CFLAGS) $(GST_BASE_CFLAGS)
+elements_isoff_LDADD = $(LDADD) $(GST_BASE_LIBS)\
 	$(top_builddir)/gst-libs/gst/isoff/libgstisoff-@GST_API_VERSION@.la
-elements_dash_isoff_SOURCES = elements/dash_isoff.c
+elements_isoff_SOURCES = elements/isoff.c
 
 elements_dash_demux_CFLAGS = $(GST_PLUGINS_BAD_CFLAGS) $(GST_PLUGINS_BASE_CFLAGS) $(AM_CFLAGS) $(LIBXML2_CFLAGS)
 elements_dash_demux_LDADD = \
