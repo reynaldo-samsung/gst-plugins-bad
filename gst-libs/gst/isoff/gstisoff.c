@@ -231,6 +231,34 @@ error:
 }
 
 static gboolean
+gst_isoff_tfdt_box_parse (GstTfdtBox * tfdt, GstByteReader * reader)
+{
+  gint8 version;
+
+  memset (tfdt, 0, sizeof (*tfdt));
+
+  if (gst_byte_reader_get_remaining (reader) < 4)
+    return FALSE;
+
+  version = gst_byte_reader_get_uint8_unchecked (reader);
+
+  if (!gst_byte_reader_skip (reader, 3))
+    return FALSE;
+
+  if (version == 1) {
+    if (!gst_byte_reader_get_uint64_be (reader, &tfdt->decode_time))
+      return FALSE;
+  } else {
+    guint32 dec_time = 0;
+    if (!gst_byte_reader_get_uint32_be (reader, &dec_time))
+      return FALSE;
+    tfdt->decode_time = dec_time;
+  }
+
+  return TRUE;
+}
+
+static gboolean
 gst_isoff_traf_box_parse (GstTrafBox * traf, GstByteReader * reader)
 {
   gboolean had_tfhd = FALSE;
@@ -239,6 +267,8 @@ gst_isoff_traf_box_parse (GstTrafBox * traf, GstByteReader * reader)
   traf->trun = g_array_new (FALSE, FALSE, sizeof (GstTrunBox));
   g_array_set_clear_func (traf->trun,
       (GDestroyNotify) gst_isoff_trun_box_clear);
+
+  traf->tfdt.decode_time = GST_CLOCK_TIME_NONE;
 
   while (gst_byte_reader_get_remaining (reader) > 0) {
     guint32 fourcc;
@@ -260,6 +290,15 @@ gst_isoff_traf_box_parse (GstTrafBox * traf, GstByteReader * reader)
         if (!gst_isoff_tfhd_box_parse (&traf->tfhd, &sub_reader))
           goto error;
         had_tfhd = TRUE;
+        break;
+      }
+      case GST_ISOFF_FOURCC_TFDT:{
+        GstByteReader sub_reader;
+
+        gst_byte_reader_get_sub_reader (reader, &sub_reader,
+            size - header_size);
+        if (!gst_isoff_tfdt_box_parse (&traf->tfdt, &sub_reader))
+          goto error;
         break;
       }
       case GST_ISOFF_FOURCC_TRUN:{

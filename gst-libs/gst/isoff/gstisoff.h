@@ -45,6 +45,7 @@ gboolean gst_isoff_parse_box_header (GstByteReader * reader, guint32 * type, gui
 #define GST_ISOFF_FOURCC_TFHD GST_MAKE_FOURCC('t','f','h','d')
 #define GST_ISOFF_FOURCC_TRUN GST_MAKE_FOURCC('t','r','u','n')
 #define GST_ISOFF_FOURCC_TRAF GST_MAKE_FOURCC('t','r','a','f')
+#define GST_ISOFF_FOURCC_TFDT GST_MAKE_FOURCC('t','f','d','t')
 #define GST_ISOFF_FOURCC_MDAT GST_MAKE_FOURCC('m','d','a','t')
 #define GST_ISOFF_FOURCC_MOOV GST_MAKE_FOURCC('m','o','o','v')
 #define GST_ISOFF_FOURCC_TRAK GST_MAKE_FOURCC('t','r','a','k')
@@ -132,9 +133,15 @@ typedef struct _GstTrunSample
   } sample_composition_time_offset;
 } GstTrunSample;
 
+typedef struct _GstTdftBox
+{
+  guint64 decode_time;
+} GstTfdtBox;
+
 typedef struct _GstTrafBox
 {
   GstTfhdBox tfhd;
+  GstTfdtBox tfdt;
   GArray *trun;
 } GstTrafBox;
 
