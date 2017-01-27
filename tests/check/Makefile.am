@@ -450,7 +450,8 @@ elements_dash_mpd_LDADD = $(GST_BASE_LIBS) $(LDADD) $(LIBXML2_LIBS) \
 elements_dash_mpd_SOURCES = elements/dash_mpd.c
 
 elements_dash_isoff_CFLAGS = $(AM_CFLAGS) $(GST_BASE_CFLAGS)
-elements_dash_isoff_LDADD = $(LDADD) $(GST_BASE_LIBS)
+elements_dash_isoff_LDADD = $(LDADD) $(GST_BASE_LIBS)\
+	$(top_builddir)/gst-libs/gst/isoff/libgstisoff-@GST_API_VERSION@.la
 elements_dash_isoff_SOURCES = elements/dash_isoff.c
 
 elements_dash_demux_CFLAGS = $(GST_PLUGINS_BAD_CFLAGS) $(GST_PLUGINS_BASE_CFLAGS) $(AM_CFLAGS) $(LIBXML2_CFLAGS)

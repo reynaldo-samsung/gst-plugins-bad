@@ -1,10 +1,6 @@
-#include "../../ext/dash/gstisoff.c"
-#undef GST_CAT_DEFAULT
-
 #include <gst/check/gstcheck.h>
 #include <gst/base/base.h>
-
-GST_DEBUG_CATEGORY (gst_dash_demux_debug);
+#include <gst/isoff/gstisoff.h>
 
 #include "dash_isoff.h"
 
@@ -190,9 +186,6 @@ dash_isoff_suite (void)
   Suite *s = suite_create ("dash-isoff");
   TCase *tc_isoff_box = tcase_create ("isoff-box-parsing");
   TCase *tc_moof = tcase_create ("moof");
-
-  GST_DEBUG_CATEGORY_INIT (gst_dash_demux_debug, "gst_dash_demux_debug", 0,
-      "mpeg dash tests");
 
   tcase_add_test (tc_isoff_box, dash_isoff_box_header_minimal);
   tcase_add_test (tc_isoff_box, dash_isoff_box_header_long_size);
