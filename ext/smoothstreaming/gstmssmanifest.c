@@ -1603,6 +1603,8 @@ gst_mss_stream_parse_fragment (GstMssStream * stream, GstBuffer * buffer)
   GstMssStreamFragment *current_fragment = NULL;
   const gchar *stream_type_name;
   guint8 index;
+  GstMoofBox *moof;
+  GstTrafBox *traf;
 
   if (!stream->has_live_fragments)
     return;
@@ -1611,19 +1613,43 @@ gst_mss_stream_parse_fragment (GstMssStream * stream, GstBuffer * buffer)
     return;
 
   current_fragment = stream->current_fragment->data;
-  current_fragment->time = stream->fragment_parser.tfxd.time;
-  current_fragment->duration = stream->fragment_parser.tfxd.duration;
+
+  moof = stream->fragment_parser.moof;
+
+  if (moof == NULL) {
+    GST_ERROR ("no moof box");
+    return;
+  }
+
+  if (moof->traf->len == 0) {
+    GST_ERROR ("no traf box");
+    return;
+  } else if (moof->traf->len > 1) {
+    GST_WARNING ("multi traf box");
+  }
+
+  traf = &g_array_index (moof->traf, GstTrafBox, 0);
+  if (traf->tfxd) {
+    current_fragment->time = traf->tfxd->time;
+    current_fragment->duration = traf->tfxd->duration;
+  } else {
+    GST_ERROR ("no tfxd box");
+  }
+
+  if (traf->tfrf == NULL) {
+    GST_ERROR ("no tfrf box");
+    return;
+  }
 
   stream_type_name =
       gst_mss_stream_type_name (gst_mss_stream_get_type (stream));
 
-  for (index = 0; index < stream->fragment_parser.tfrf.entries_count; index++) {
+  for (index = 0; index < traf->tfrf->entries_count; index++) {
+    GstTfrfBoxEntry *entry =
+        &g_array_index (traf->tfrf->entries, GstTfrfBoxEntry, index);
     GList *l = g_list_last (stream->fragments);
     GstMssStreamFragment *last;
     GstMssStreamFragment *fragment;
-    guint64 parsed_time = stream->fragment_parser.tfrf.entries[index].time;
-    guint64 parsed_duration =
-        stream->fragment_parser.tfrf.entries[index].duration;
 
     if (l == NULL)
       break;
@@ -1632,14 +1658,14 @@ gst_mss_stream_parse_fragment (GstMssStream * stream, GstBuffer * buffer)
 
     /* only add the fragment to the list if it's outside the time in the
      * current list */
-    if (last->time >= stream->fragment_parser.tfrf.entries[index].time)
+    if (last->time == entry->time)
       continue;
 
     fragment = g_new (GstMssStreamFragment, 1);
     fragment->number = last->number + 1;
     fragment->repetitions = 1;
-    fragment->time = parsed_time;
-    fragment->duration = parsed_duration;
+    fragment->time = entry->time;
+    fragment->duration = entry->duration;
 
     stream->fragments = g_list_append (stream->fragments, fragment);
     GST_LOG ("Adding fragment number: %u to %s stream, time: %"
