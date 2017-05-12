@@ -31,11 +31,11 @@
 G_BEGIN_DECLS
 
 typedef enum {
-  GST_ISOFF_PARSER_OK,
-  GST_ISOFF_PARSER_DONE,
-  GST_ISOFF_PARSER_UNEXPECTED,
-  GST_ISOFF_PARSER_ERROR
-} GstIsoffParserResult;
+  GST_SIDX_PARSER_OK,
+  GST_SIDX_PARSER_DONE,
+  GST_SIDX_PARSER_UNEXPECTED,
+  GST_SIDX_PARSER_ERROR
+} GstSidxParserResult;
 
 gboolean gst_isoff_parse_box_header (GstByteReader * reader, guint32 * type, guint8 extended_type[16], guint * header_size, guint64 * size);
 
@@ -187,8 +187,8 @@ typedef struct _GstSidxParser
 
 void gst_isoff_sidx_parser_init (GstSidxParser * parser);
 void gst_isoff_sidx_parser_clear (GstSidxParser * parser);
-GstIsoffParserResult gst_isoff_sidx_parser_parse (GstSidxParser * parser, GstByteReader * reader, guint * consumed);
-GstIsoffParserResult gst_isoff_sidx_parser_add_buffer (GstSidxParser * parser, GstBuffer * buf, guint * consumed);
+GstSidxParserResult gst_isoff_sidx_parser_parse (GstSidxParser * parser, GstByteReader * reader, guint * consumed);
+GstSidxParserResult gst_isoff_sidx_parser_add_buffer (GstSidxParser * parser, GstBuffer * buf, guint * consumed);
 
 G_END_DECLS
 

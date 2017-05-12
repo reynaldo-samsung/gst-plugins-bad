@@ -393,11 +393,11 @@ gst_isoff_parse_sidx_entry (GstSidxBoxEntry * entry, GstByteReader * reader)
   entry->sap_delta_time = aux & 0xFFFFFFF;
 }
 
-GstIsoffParserResult
+GstSidxParserResult
 gst_isoff_sidx_parser_parse (GstSidxParser * parser,
     GstByteReader * reader, guint * consumed)
 {
-  GstIsoffParserResult res = GST_ISOFF_PARSER_OK;
+  GstSidxParserResult res = GST_SIDX_PARSER_OK;
   gsize remaining;
 
   INITIALIZE_DEBUG_CATEGORY;
@@ -485,7 +485,7 @@ gst_isoff_sidx_parser_parse (GstSidxParser * parser,
         break;
     case GST_ISOFF_SIDX_PARSER_FINISHED:
       parser->sidx.entry_index = 0;
-      res = GST_ISOFF_PARSER_DONE;
+      res = GST_SIDX_PARSER_DONE;
       break;
   }
 
@@ -494,11 +494,11 @@ gst_isoff_sidx_parser_parse (GstSidxParser * parser,
   return res;
 }
 
-GstIsoffParserResult
+GstSidxParserResult
 gst_isoff_sidx_parser_add_buffer (GstSidxParser * parser, GstBuffer * buffer,
     guint * consumed)
 {
-  GstIsoffParserResult res = GST_ISOFF_PARSER_OK;
+  GstSidxParserResult res = GST_SIDX_PARSER_OK;
   GstByteReader reader;
   GstMapInfo info;
   guint32 fourcc;
@@ -506,7 +506,7 @@ gst_isoff_sidx_parser_add_buffer (GstSidxParser * parser, GstBuffer * buffer,
   INITIALIZE_DEBUG_CATEGORY;
   if (!gst_buffer_map (buffer, &info, GST_MAP_READ)) {
     *consumed = 0;
-    return GST_ISOFF_PARSER_ERROR;
+    return GST_SIDX_PARSER_ERROR;
   }
 
   gst_byte_reader_init (&reader, info.data, info.size);
@@ -517,13 +517,13 @@ gst_isoff_sidx_parser_add_buffer (GstSidxParser * parser, GstBuffer * buffer,
       goto done;
 
     if (fourcc != GST_ISOFF_FOURCC_SIDX) {
-      res = GST_ISOFF_PARSER_UNEXPECTED;
+      res = GST_SIDX_PARSER_UNEXPECTED;
       gst_byte_reader_set_pos (&reader, 0);
       goto done;
     }
 
     if (parser->size == 0) {
-      res = GST_ISOFF_PARSER_ERROR;
+      res = GST_SIDX_PARSER_ERROR;
       gst_byte_reader_set_pos (&reader, 0);
       goto done;
     }

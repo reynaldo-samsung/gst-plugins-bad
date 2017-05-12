@@ -2231,7 +2231,7 @@ gst_dash_demux_parse_isobmff (GstAdaptiveDemux * demux,
         gst_mpd_client_has_isoff_ondemand_profile (dashdemux->client) &&
         dash_stream->allow_sidx) {
       GstByteReader sub_reader;
-      GstIsoffParserResult res;
+      GstSidxParserResult res;
       guint dummy;
 
       dash_stream->sidx_base_offset =
@@ -2244,7 +2244,7 @@ gst_dash_demux_parse_isobmff (GstAdaptiveDemux * demux,
           gst_isoff_sidx_parser_parse (&dash_stream->sidx_parser, &sub_reader,
           &dummy);
 
-      if (res == GST_ISOFF_PARSER_DONE) {
+      if (res == GST_SIDX_PARSER_DONE) {
         guint64 first_offset = dash_stream->sidx_parser.sidx.first_offset;
         GstSidxBox *sidx = SIDX (dash_stream);
         guint i;
